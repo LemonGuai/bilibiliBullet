@@ -52,5 +52,3 @@ def __HandleBulletText(bullet_text, BV):
             myfile.write(i + '\n')
     return path
 
-
-
