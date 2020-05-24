@@ -54,8 +54,8 @@ def __HandleBulletText(bullet_text, SearchStatement):
     elif re.match(UrlPattern, SearchStatement):  # 匹配视频连接
         BV = re.match(UrlPattern, SearchStatement).group(1)
     filename = 'bilibili_bullet_list_{0}.txt'.format(BV)
-    path = 'programs/爬虫/b站弹幕/{0}'.format(filename)
-    # path = os.getcwd()+format(filename)
+    # path = 'programs/爬虫/b站弹幕/{0}'.format(filename)
+    path = os.getcwd()+format(filename)
     with open(path, 'w', encoding='utf-8') as myfile:
         for i in bullet_list:
             myfile.write(i + '\n')
