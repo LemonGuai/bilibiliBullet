@@ -29,7 +29,7 @@ def __GetHtml(SearchStatement):
         return "请输入BV号,视频链接或视频名称"
     BVPattern = r'BV\w{10}'
     UrlPattern = r'https://www\.bilibili\.com\/video\/BV(\w{10})\?spm_id_from=(.*)'
-
+    # 获取BV号和Url
     if re.match(BVPattern, SearchStatement):  # 匹配bv号
         url = "https://www.bilibili.com/video/{0}".format(SearchStatement)
         BV = SearchStatement
@@ -61,22 +61,24 @@ def __GetBulletList(html_text, BV):
     cid = re.search(pattern, html_text).group(1)  # 获取cid
     url = "https://api.bilibili.com/x/v1/dm/list.so?oid={0}".format(cid)
     try:
-        bullet_text = requests.get(url, headers, roxies=proxies).content  # 获取弹幕内容
+        bullet_text = requests.get(url, headers,
+                                   roxies=proxies).content  # 获取弹幕内容
     except Exception as error:
         print("获取视频弹幕列表出错,BV号:{0},错误信息:{1}".format(BV, error))
     return bullet_text
 
 
-def __HandleBulletText(bullet_text, SearchStatement):
+# 处理弹幕内容并保存到本地
+def __HandleBulletText(bullet_text, SearchStatement, BV):
     xml = etree.fromstring(bullet_text)
     bullet_list = xml.xpath('//i//d//text()')
     BV = ""
     BVPattern = r'BV\w{10}'
     UrlPattern = r'https://www\.bilibili\.com\/video\/BV(\w{10})\?spm_id_from=(.*)'
-    if re.match(BVPattern, SearchStatement):  # 匹配bv号
-        BV = 'BV' + SearchStatement
-    elif re.match(UrlPattern, SearchStatement):  # 匹配视频链接
-        BV = re.match(UrlPattern, SearchStatement).group(1)
+    # if re.match(BVPattern, SearchStatement):  # 匹配bv号
+    #     BV = 'BV' + SearchStatement
+    # elif re.match(UrlPattern, SearchStatement):  # 匹配视频链接
+    #     BV = re.match(UrlPattern, SearchStatement).group(1)
     filename = 'bilibili_bullet_list_{0}.txt'.format(BV)
     path = 'programs/爬虫/b站弹幕/{0}'.format(filename)
     # path = os.getcwd()+format(filename)
@@ -91,7 +93,7 @@ def main():
     SearchStatement = input()
     html_text = __GetHtml(SearchStatement)
     bullet_text = __GetBulletList(html_text, BV)
-    path = __HandleBulletText(bullet_text, SearchStatement)
+    path = __HandleBulletText(bullet_text, SearchStatement, BV)
     print("爬取的弹幕保存路径为:{0}".format(path))
 
 
