@@ -1,4 +1,5 @@
 '''
+a module to quickly use mysql
 created on 2020.05.24
 @auther:lemon
 '''
@@ -66,7 +67,7 @@ class DBHelper(object):
         count = 0
         try:
             self.connect()
-            count = self.cursor.execute(sql,params)
+            count = self.cursor.execute(sql, params)
             self.conn.commit()
             self.close()
         except Exception as e:
