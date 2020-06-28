@@ -5,6 +5,7 @@ created on 2020.05.24
 '''
 # coding = utf-8
 import pymysql
+import sys
 
 
 class DBHelper(object):
@@ -32,44 +33,100 @@ class DBHelper(object):
         self.cursor.close()
         self.conn.close()
 
-    def query_one(self, sql, params=[]):
+    # 获取查询结果
+    def ExecQuery_One(self, sql, params=()):
         result = None
         try:
             self.connect()
             self.cursor.execute(sql, params)
             result = self.cursor.fetchone()
-            self.close()
         except Exception as e:
             print(e)
+        finally:
+            self.close()
         return result
 
-    def query_all(self, sql, params=[]):
+    # 获取所有查询结果
+    def ExecQuery(self, sql, params=()):
         result = ()
         try:
             self.connect()
             self.cursor.execute(sql, params)
             result = self.cursor.fetchall()
-            self.close()
         except Exception as e:
             print(e)
+        finally:
+            self.close()
         return result
 
-    def insert(self, sql, params=[]):
-        return self.__edit(sql, params)
-
-    def update(self, sql, params=[]):
-        return self.__edit(sql, params)
-
-    def delete(self, sql, params=[]):
-        return self.__edit(sql, params)
-
-    def __edit(self, sql, params=[]):
+    def ExecNonQuery(self, sql, params=()):
         count = 0
         try:
             self.connect()
             count = self.cursor.execute(sql, params)
             self.conn.commit()
-            self.close()
         except Exception as e:
             print(e)
+        finally:
+            self.close()
         return count
+
+    # def insert(self, sql, params=()):
+    #     return self.__ExecNonQuery(sql, params)
+
+    # 执行非查询脚本
+    def ExecuteNonQryText(self, sSQLName, params=()):
+        sPath = sys.path[0] + r'\\SQL\\{0}'.format(sSQLName)
+        count = 0
+        try:
+            self.connect()
+            with open(sPath, 'r', encoding="utf-8") as sqlfile:
+                sqllist = sqlfile.read().split(';')[:-1]
+                for sql in sqllist:
+                    if '\n' in sql:     # 判断是否是空行
+                        sql = sql.replace('\n', '')      # 把空行替换为空格
+                    if '   ' in sql:  # 判断是否有多个空格
+                        sql = sql.replace('   ', '')
+                    sCommand = sql+';'
+                count = self.cursor.executemany(sCommand, params)
+                self.conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            self.close()
+        return count
+
+    # 执行查询脚本
+    def ExecuteQryText(self, sSQLName, params=()):
+        sPath = sys.path[0] + r'\\SQL\\{0}'.format(sSQLName)
+        try:
+            self.connect()
+            with open(sPath, 'r', encoding="utf-8") as sqlfile:
+                sqllist = sqlfile.read().split(';')[:-1]
+                for sql in sqllist:
+                    if '\n' in sql:  # 判断是否是空行
+                        sql.replace('\n', ' ')  # 把空行替换为空格
+                    if '   ' in sql:  # 判断是否有多个空格
+                        sql.replace('   ', '')
+                    sCommand = sql + ';'
+                self.cursor.executemany(sCommand, params)
+                result = self.cursor.fetchall()
+                self.conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            self.close()
+        return result
+
+    # 执行存储过程
+    def ExecuteProcedure(self, sProcName, params=()):
+        try:
+            self.connect()
+            self.cursor.callproc(sProcName, params)
+            result = self.cursor.fetchall()
+            self.conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            self.close()
+        return result
